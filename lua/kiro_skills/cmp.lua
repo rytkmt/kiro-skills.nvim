@@ -65,14 +65,14 @@ function M.register(cmp)
     pattern = { "prompt.md", "*/prompt.md" },
     callback = function(args)
       -- このバッファにだけ kiro_skills source を足す。
-      cmp.setup.buffer({
-        sources = cmp.config.sources({
-          { name = "kiro_skills", priority = 100 },
-        }, {
-          { name = "buffer" },
-          { name = "path" },
-        }),
-      })
+      -- 既存の sources は置き換えず、先頭に追加して継承する。
+      local sources = { { name = "kiro_skills", priority = 100 } }
+      for _, s in ipairs(cmp.get_config().sources or {}) do
+        if s.name ~= "kiro_skills" then -- BufEnter 再実行時の重複を避ける
+          table.insert(sources, s)
+        end
+      end
+      cmp.setup.buffer({ sources = sources })
       -- markdown 既定の `/` 非トリガーを上書きするため、バッファ単位で設定済み。
       vim.b[args.buf].kiro_skills_enabled = true
     end,
